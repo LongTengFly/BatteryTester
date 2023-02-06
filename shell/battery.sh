@@ -36,13 +36,13 @@ mainLoop() {
         cmdRet=`upower -e`
         echo -e "$cmdRet\n"
         
-        if [[ "$cmdRet" != *"battery"* ]]
+        if [[ "$cmdRet" == *"battery"* ]]
         then
             array=(${cmdRet//'\n'/ })
             # 提取battery信息的文件位置
             for var in ${array[@]}
             do
-                if [[ "$var" != *"battery"* ]]
+                if [[ "$var" == *"battery"* ]]
                 then
                     batteryPath=$var
                     break
