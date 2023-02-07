@@ -33,40 +33,28 @@ mainLoop() {
     if [ $? -eq 0 ]
     then
         # 检查电脑是否有电池
-        cmdRet=`upower -e`
-        echo -e "$cmdRet\n"
-        
-        if [[ "$cmdRet" == *"battery"* ]]
-        then
-            array=(${cmdRet//'\n'/ })
-            # 提取battery信息的文件位置
-            for var in ${array[@]}
-            do
-                if [[ "$var" == *"battery"* ]]
-                then
-                    batteryPath=$var
-                    break
-                fi
-            done
-        else
+        cmdRet=`upower -e | grep battery`
+
+        if [ ${#cmdRet} -eq 0 ];then
             echo "warning: The device has no battery"
             exit 1
         fi
+        
+        array=(${cmdRet//'\n'/ })
+        # 提取battery信息的文件位置
+        batteryPath=${array[0]}
+        
 
         # 获取电池的电量（百分比）
-        cmdRet=`upower -i $batteryPath`
+        cmdRet=`upower -i $batteryPath | grep battery`
         echo -e "$cmdRet"
         writeLog "$cmdRet"
         array=(${cmdRet// /})
         for var in "${array[@]}"
         do
-            echo -e "==$var=="
             # 对结果进行解析
-            if [[ "$var" == *"battery"* ]]
-            then
-                array2=(${var//:/ })
-                echo ${array2[1]}
-            fi
+            array2=(${var//:/ })
+            echo ${array2[1]}
         done
     fi
     
