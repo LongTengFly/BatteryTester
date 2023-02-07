@@ -1,7 +1,17 @@
 #!/bin/bash
-# Developed by Alice (maoyamin)
 
+#######################################
+# Developed by Alice (maoyamin)
+#######################################
+
+# 工具当前的版本号
 Version="1.0.0"
+
+# 设置允许测试的电量阈值
+testPercent="98"
+
+# 保存log的路径
+testLogFile="batterytest.log"
 
 echo "**********************************************************"
 echo "Welcome to the battery life test tool"
@@ -11,9 +21,9 @@ echo "**********************************************************"
 
 writeLog()
 {
-    # echo `date +"%Y-%m-%d %H:%M:%S"` begin >> ./a.log
-    # echo `date +"%Y-%m-%d %H:%M:%S"` end >> ./a.log
-    echo -e `date +"%Y-%m-%d %H:%M:%S "` $1 >> ./a.log
+    # echo `date +"%Y-%m-%d %H:%M:%S"` begin >> ./a.log
+    # echo `date +"%Y-%m-%d %H:%M:%S"` end >> ./a.log
+    echo -e `date +"%Y-%m-%d %H:%M:%S "` $1 >> $testLogFile
 }
 
 # Standard endurance test.
@@ -22,10 +32,9 @@ standardTest() {
     echo "Start Standard endurance test."
 }
 
-# Main function
-# 测试的主函数
-mainLoop() {
-    echo "Start relevant environmental inspection"
+# 检查电池电量百分比
+checkBatteryPercent(){
+    echo "Check the battery percent......"
     # type指令判断upower是否存在,并获取返回值
     
     checkUpower=`type upower`
@@ -39,29 +48,47 @@ mainLoop() {
             echo "warning: The device has no battery"
             exit 1
         fi
-        
+        echo -e "$cmdRet"
         array=(${cmdRet//'\n'/ })
         # 提取battery信息的文件位置
         batteryPath=${array[0]}
         
 
         # 获取电池的电量（百分比）
-        cmdRet=`upower -i $batteryPath | grep battery`
+        cmdRet=`upower -i $batteryPath | grep "percentage"`
         echo -e "$cmdRet"
-        writeLog "$cmdRet"
+        #writeLog "$cmdRet"
         array=(${cmdRet// /})
         for var in "${array[@]}"
         do
             # 对结果进行解析
             array2=(${var//:/ })
-            echo ${array2[1]}
+            array2=(${array2[1]//%/})
+            echo ${array2[0]}
+            
         done
+        if [[ "${array2[0]}" -lt "$testPercent" ]];then
+		    echo "warning: The battery is too low to perform the test."
+            echo "${array2[0]} % < $testPercent %"
+            exit 1
+        fi
+    else
+        echo "no shell suport"
+        exit 1
     fi
+}
+
+# Main function
+# 测试的主函数
+mainLoop() {
+    checkBatteryPercent
     
 
     standardTest
 }
-
+#######################################################
+# 最开始的地方
+######################################################
 if [ $# -eq 0 ]
 then
 # Handling cases without command line arguments
@@ -92,17 +119,6 @@ then
         esac
 
         echo -e "warning: Please enter the correct number!\n"
-
-        # if [ $num = "q" ] 
-        # then 
-        #     exit 1
-        # elif [ $num -gt 3 -o $num -lt 1 ]
-        # then
-        #     echo "warning: Please enter the correct number!\n"
-        
-        # else
-        #     echo "choose $num"
-        # fi
 
     done
 else
