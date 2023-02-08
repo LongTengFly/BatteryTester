@@ -32,6 +32,35 @@ standardTest() {
     echo "Start Standard endurance test."
 }
 
+# 电源管理: 关闭自动屏保、自动关闭显示器、自动S3、自动锁屏、自动调低亮度、低电量时不做任何操作
+setPowerManagement(){
+    echo "set power management......"
+    checkUpower=`type xset`
+    echo $checkUpower
+    if [ $? -ne 0 ];then
+        echo "The xset command does not exist."
+        exit 1
+    fi
+    # 关闭屏幕保护
+    xset s 0
+    cmdRet=`sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target`
+    echo $cmdRet
+
+}
+
+
+# 关闭网卡
+closeNetwork(){
+    echo "Disable the network NIC......"
+    # 获取网卡信息，筛选出网卡名称
+    a=(`ifconfig | grep ^[a-z] | awk '{print $1}' | sed 's/://'| sed 's/lo//'`)
+    for var in "${a[@]}"
+    do
+        echo "ifconfig $var down"
+        #ifconfig $var down
+    done
+}
+
 # 检查电池电量百分比
 checkBatteryPercent(){
     echo "Check the battery percent......"
@@ -81,6 +110,8 @@ checkBatteryPercent(){
 # Main function
 # 测试的主函数
 mainLoop() {
+    closeNetwork
+    setPowerManagement
     checkBatteryPercent
     
 
