@@ -15,6 +15,8 @@ testLogFile="batterytest.log"
 
 # PPT的路径
 path_PPT="hello.pptx"
+# 音视频路径
+path_vdio="hello.mp4"
 
 # 默认的测试模式
 testMode=1
@@ -83,12 +85,12 @@ closeNetwork(){
     for var in "${a[@]}"
     do
         echo "ifconfig $var down"
-        #ifconfig $var down
+        ifconfig $var down
     done
 }
 
 test01(){
-    
+    echo "load PPT..."
 }
 
 #
@@ -112,6 +114,11 @@ mainLoop(){
     do
         case $testMode in
         1)
+            if [ ! -f "$path_PPT" ]; then
+                echo "$path_PPT 不存在"
+            else
+                test01
+            fi
             ;;
         2)
             ;;
